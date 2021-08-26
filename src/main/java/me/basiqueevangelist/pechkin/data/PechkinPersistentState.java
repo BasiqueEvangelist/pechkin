@@ -10,7 +10,7 @@ import net.minecraft.world.PersistentState;
 import java.util.*;
 
 public class PechkinPersistentState extends PersistentState {
-    private final Map<UUID, List<MailMessage>> playerMap = new HashMap<>();
+    private final Map<UUID, PechkinPlayerData> playerMap = new HashMap<>();
 
     public static PechkinPersistentState getFromServer(MinecraftServer server) {
         return server.getOverworld().getPersistentStateManager().getOrCreate(
@@ -30,15 +30,13 @@ public class PechkinPersistentState extends PersistentState {
             var playerTag = playersTag.getCompound(i);
 
             UUID playerId = playerTag.getUuid("UUID");
-            var messagesTag = playerTag.getList("Messages", NbtElement.COMPOUND_TYPE);
-            var messages = new ArrayList<MailMessage>();
 
-            for (int j = 0; j < messagesTag.size(); j++) {
-                messages.add(MailMessage.fromTag(messagesTag.getCompound(j)));
-            }
-
-            playerMap.put(playerId, messages);
+            playerMap.put(playerId, PechkinPlayerData.fromTag(playerTag));
         }
+    }
+
+    public PechkinPlayerData getDataFor(UUID player) {
+        return playerMap.computeIfAbsent(player, k -> new PechkinPlayerData());
     }
 
     @Override
@@ -49,17 +47,16 @@ public class PechkinPersistentState extends PersistentState {
         for (var entry : playerMap.entrySet()) {
             if (entry.getValue().isEmpty()) continue;
 
-            var playerTag = new NbtCompound();
+            var playerTag = entry.getValue().toTag(new NbtCompound());
             playerTag.put("UUID", NbtHelper.fromUuid(entry.getKey()));
             playersTag.add(playerTag);
-
-            var messagesTag = new NbtList();
-            playerTag.put("Messages", messagesTag);
-            for (MailMessage message : entry.getValue()) {
-                messagesTag.add(message.toTag(new NbtCompound()));
-            }
         }
 
         return nbt;
+    }
+
+    @Override
+    public boolean isDirty() {
+        return true;
     }
 }
