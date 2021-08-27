@@ -36,7 +36,10 @@ public final class SendCommand {
             .then(literal("send")
                 .then(argument("player", GameProfileArgumentType.gameProfile())
                     .then(argument("message", MessageArgumentType.message())
-                        .executes(SendCommand::send)))));
+                        .executes(SendCommand::send))))
+            .then(argument("player", GameProfileArgumentType.gameProfile())
+                .then(argument("message", MessageArgumentType.message())
+                    .executes(SendCommand::send))));
     }
 
     private static int send(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
