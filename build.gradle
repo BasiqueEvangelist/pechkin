@@ -20,6 +20,7 @@ repositories {
 		name = "Basique's Maven"
 		url = 'https://porez.ml/maven'
 	}
+	maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
 }
 
 loom {
@@ -54,6 +55,7 @@ dependencies {
 	include modImplementation('me.basiqueevangelist:ne-v-seti:0.1.6+1.17.1') {
 		transitive = false
 	}
+	modImplementation include('me.lucko:fabric-permissions-api:0.1-SNAPSHOT')
 }
 
 processResources {

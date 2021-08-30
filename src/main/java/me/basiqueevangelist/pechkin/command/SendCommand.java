@@ -8,6 +8,7 @@ import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import me.basiqueevangelist.pechkin.data.MailMessage;
 import me.basiqueevangelist.pechkin.data.PechkinPersistentState;
 import me.basiqueevangelist.pechkin.logic.MailLogic;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.command.argument.GameProfileArgumentType;
 import net.minecraft.command.argument.MessageArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
@@ -36,9 +37,11 @@ public final class SendCommand {
             .then(literal("send")
                 .then(argument("player", GameProfileArgumentType.gameProfile())
                     .then(argument("message", MessageArgumentType.message())
+                        .requires(Permissions.require("pechkin.send", true))
                         .executes(SendCommand::send))))
             .then(argument("player", GameProfileArgumentType.gameProfile())
                 .then(argument("message", MessageArgumentType.message())
+                    .requires(Permissions.require("pechkin.send", true))
                     .executes(SendCommand::send))));
     }
 
