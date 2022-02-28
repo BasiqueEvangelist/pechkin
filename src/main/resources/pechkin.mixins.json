@@ -4,6 +4,7 @@
   "package": "me.basiqueevangelist.pechkin.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
+    "CommandManagerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

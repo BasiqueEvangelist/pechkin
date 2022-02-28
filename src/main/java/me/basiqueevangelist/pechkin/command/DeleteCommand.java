@@ -6,11 +6,11 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import me.basiqueevangelist.pechkin.data.PechkinPersistentState;
 import me.basiqueevangelist.pechkin.data.PechkinPlayerData;
+import me.basiqueevangelist.pechkin.hack.StateTracker;
 import net.minecraft.command.argument.UuidArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
-import net.minecraft.util.Formatting;
 
 import java.util.UUID;
 
@@ -27,6 +27,7 @@ public final class DeleteCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal("mail")
             .then(literal("internal")
+                .requires(x -> !StateTracker.IS_IN_COMMAND_TREE_CREATION)
                 .then(literal("delete")
                     .then(argument("message", UuidArgumentType.uuid())
                         .executes(DeleteCommand::deleteMail)))));
