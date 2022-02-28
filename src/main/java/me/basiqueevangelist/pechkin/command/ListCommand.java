@@ -37,9 +37,9 @@ public final class ListCommand {
 
         for (var message : data.messages()) {
             complete.append(new LiteralText("\n["))
-                .append(new LiteralText("x")
+                .append(new LiteralText("✘")
                     .formatted(Formatting.RED)
-                    .styled(x -> x.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mail internal delete " + message.messageId()))))
+                    .styled(x -> x.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mail internal delete_list " + message.messageId()))))
                 .append(" ")
                 .append(new LiteralText("i")
                     .formatted(Formatting.BLUE)

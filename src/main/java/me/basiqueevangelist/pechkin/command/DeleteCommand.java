@@ -28,12 +28,26 @@ public final class DeleteCommand {
         dispatcher.register(literal("mail")
             .then(literal("internal")
                 .requires(x -> !StateTracker.IS_IN_COMMAND_TREE_CREATION)
-                .then(literal("delete")
+                .then(literal("delete_list")
                     .then(argument("message", UuidArgumentType.uuid())
-                        .executes(DeleteCommand::deleteMail)))));
+                        .executes(DeleteCommand::deleteList)))
+                .then(literal("delete_silent")
+                    .then(argument("message", UuidArgumentType.uuid())
+                        .executes(DeleteCommand::deleteSilent)))));
     }
 
-    private static int deleteMail(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
+    private static int deleteSilent(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
+        ServerCommandSource src = ctx.getSource();
+        ServerPlayerEntity player = src.getPlayer();
+        UUID messageId = UuidArgumentType.getUuid(ctx, "message");
+        PechkinPlayerData data = PechkinPersistentState.getFromServer(src.getServer()).getDataFor(player.getUuid());
+
+        data.messages().removeIf(x -> x.messageId().equals(messageId));
+
+        return 1;
+    }
+
+    private static int deleteList(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
         ServerCommandSource src = ctx.getSource();
         ServerPlayerEntity player = src.getPlayer();
         UUID messageId = UuidArgumentType.getUuid(ctx, "message");
