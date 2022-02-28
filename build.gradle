@@ -17,6 +17,13 @@ repositories {
 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
 	// for more information about repositories.
 	maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+	maven {
+		name = "Modrinth"
+		url = "https://api.modrinth.com/maven"
+		content {
+			includeGroup "maven.modrinth"
+		}
+	}
 }
 
 loom {
@@ -49,6 +56,8 @@ dependencies {
 	// You may need to force-disable transitiveness on them.
 
 	modImplementation include('me.lucko:fabric-permissions-api:0.1-SNAPSHOT')
+
+	modLocalRuntime "maven.modrinth:lazydfu:0.1.2"
 }
 
 processResources {
