@@ -3,11 +3,10 @@ package me.basiqueevangelist.pechkin.command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import me.basiqueevangelist.nevseti.OfflineNameCache;
 import me.basiqueevangelist.pechkin.data.PechkinPersistentState;
 import me.basiqueevangelist.pechkin.data.PechkinPlayerData;
+import me.basiqueevangelist.pechkin.util.NameUtil;
 import me.basiqueevangelist.pechkin.util.TimeUtils;
-import net.minecraft.network.MessageType;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.ClickEvent;
@@ -15,8 +14,6 @@ import net.minecraft.text.HoverEvent;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.MutableText;
 import net.minecraft.util.Formatting;
-
-import java.time.LocalDateTime;
 
 import static net.minecraft.server.command.CommandManager.literal;
 
@@ -52,7 +49,7 @@ public final class ListCommand {
                             .append(" ago\nUUID: " + message.messageId())
                     ))))
                 .append("] ")
-                .append(new LiteralText(OfflineNameCache.INSTANCE.getNameFromUUID(message.sender())).formatted(Formatting.AQUA))
+                .append(new LiteralText(NameUtil.getNameFromUUID(message.sender())).formatted(Formatting.AQUA))
                 .append(new LiteralText(" -> ").formatted(Formatting.WHITE))
                 .append(player.getDisplayName().shallowCopy().formatted(Formatting.AQUA))
                 .append(new LiteralText(": ").formatted(Formatting.WHITE))

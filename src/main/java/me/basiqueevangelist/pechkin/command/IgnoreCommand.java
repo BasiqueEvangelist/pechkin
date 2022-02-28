@@ -5,8 +5,8 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
-import me.basiqueevangelist.nevseti.OfflineNameCache;
 import me.basiqueevangelist.pechkin.data.PechkinPersistentState;
+import me.basiqueevangelist.pechkin.util.NameUtil;
 import net.minecraft.command.argument.GameProfileArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -66,7 +66,7 @@ public final class IgnoreCommand {
 
         src.sendFeedback(new LiteralText("Ignoring any further messages from ")
             .formatted(Formatting.GREEN)
-            .append(new LiteralText(OfflineNameCache.INSTANCE.getNameFromUUID(offender.getId())).formatted(Formatting.AQUA))
+            .append(new LiteralText(NameUtil.getNameFromUUID(offender.getId())).formatted(Formatting.AQUA))
             .append("."), false);
 
         return 1;
@@ -93,7 +93,7 @@ public final class IgnoreCommand {
 
         src.sendFeedback(new LiteralText("Stopped ignoring messages from ")
             .formatted(Formatting.DARK_RED)
-            .append(new LiteralText(OfflineNameCache.INSTANCE.getNameFromUUID(offender.getId())).formatted(Formatting.AQUA))
+            .append(new LiteralText(NameUtil.getNameFromUUID(offender.getId())).formatted(Formatting.AQUA))
             .append("."), false);
 
         return 1;
@@ -113,7 +113,7 @@ public final class IgnoreCommand {
             if (!isFirst)
                 playersBuilder.append(", ");
             isFirst = false;
-            playersBuilder.append(new LiteralText(OfflineNameCache.INSTANCE.getNameFromUUID(ignoredPlayer)).formatted(Formatting.AQUA));
+            playersBuilder.append(new LiteralText(NameUtil.getNameFromUUID(ignoredPlayer)).formatted(Formatting.AQUA));
         }
 
         if (isFirst)

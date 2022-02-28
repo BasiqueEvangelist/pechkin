@@ -5,16 +5,28 @@ import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.nbt.NbtList;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public record PechkinPlayerData(
-    List<MailMessage> messages,
-    List<UUID> ignoredPlayers
-) {
+public final class PechkinPlayerData {
+    private final List<MailMessage> messages;
+    private final List<UUID> ignoredPlayers;
+    private Instant lastMessageSent;
+
+    public PechkinPlayerData(
+        List<MailMessage> messages,
+        List<UUID> ignoredPlayers,
+        Instant lastMessageSent
+    ) {
+        this.messages = messages;
+        this.ignoredPlayers = ignoredPlayers;
+        this.lastMessageSent = lastMessageSent;
+    }
+
     public PechkinPlayerData() {
-        this(new ArrayList<>(), new ArrayList<>());
+        this(new ArrayList<>(), new ArrayList<>(), Instant.EPOCH);
     }
 
     public static PechkinPlayerData fromTag(NbtCompound tag) {
@@ -32,7 +44,9 @@ public record PechkinPlayerData(
             ignoredPlayers.add(NbtHelper.toUuid(ignoredPlayerTag));
         }
 
-        return new PechkinPlayerData(messages, ignoredPlayers);
+        Instant lastMessageSent = Instant.ofEpochMilli(tag.getLong("LastMessageSent"));
+
+        return new PechkinPlayerData(messages, ignoredPlayers, lastMessageSent);
     }
 
     public boolean isEmpty() {
@@ -57,5 +71,21 @@ public record PechkinPlayerData(
         }
 
         return tag;
+    }
+
+    public List<MailMessage> messages() {
+        return messages;
+    }
+
+    public List<UUID> ignoredPlayers() {
+        return ignoredPlayers;
+    }
+
+    public Instant getLastMessageSent() {
+        return lastMessageSent;
+    }
+
+    public void setLastMessageSent(Instant lastMessageSent) {
+        this.lastMessageSent = lastMessageSent;
     }
 }

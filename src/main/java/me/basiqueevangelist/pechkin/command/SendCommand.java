@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import me.basiqueevangelist.pechkin.data.MailMessage;
 import me.basiqueevangelist.pechkin.data.PechkinPersistentState;
@@ -16,6 +17,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.UUID;
@@ -27,6 +29,7 @@ public final class SendCommand {
     private static SimpleCommandExceptionType TOO_MANY_PLAYERS = new SimpleCommandExceptionType(new LiteralText("Can't send mail to many players at once!"));
     private static SimpleCommandExceptionType SELF_MESSAGE = new SimpleCommandExceptionType(new LiteralText("Can't send mail to yourself!"));
     private static SimpleCommandExceptionType IGNORED = new SimpleCommandExceptionType(new LiteralText("That player has ignored you."));
+    private static DynamicCommandExceptionType COOLDOWN_ACTIVE = new DynamicCommandExceptionType(time -> new LiteralText("Cooldown active, can't send mail for " + time + " seconds."));
 
     private SendCommand() {
 
@@ -60,14 +63,22 @@ public final class SendCommand {
             throw SELF_MESSAGE.create();
 
         var state = PechkinPersistentState.getFromServer(src.getServer());
+        var senderData = state.getDataFor(sender.getUuid());
         var recipientData = state.getDataFor(recipient.getId());
 
         if (recipientData.ignoredPlayers().contains(sender.getUuid()))
             throw IGNORED.create();
 
+        var cooldownTime = Duration.between(senderData.getLastMessageSent(), Instant.now()).toSeconds();
+        if (cooldownTime < 60 && !Permissions.check(sender, "pechkin.bypasscooldown", 2)) {
+            throw COOLDOWN_ACTIVE.create(60 - cooldownTime);
+        }
+
         MailMessage mail = new MailMessage(message, sender.getUuid(), UUID.randomUUID(), Instant.now());
         recipientData.messages().add(mail);
         MailLogic.notifyMailSent(recipient.getId(), sender, mail);
+
+        senderData.setLastMessageSent(Instant.now());
 
         ServerPlayerEntity onlineRecipient = src.getServer().getPlayerManager().getPlayer(recipient.getId());
         if (onlineRecipient != null) {
