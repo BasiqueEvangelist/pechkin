@@ -31,7 +31,6 @@ import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public final class SendCommand {
-    private static SimpleCommandExceptionType TOO_MANY_PLAYERS = new SimpleCommandExceptionType(new LiteralText("Can't send mail to many players at once!"));
     private static SimpleCommandExceptionType SELF_MESSAGE = new SimpleCommandExceptionType(new LiteralText("Can't send mail to yourself!"));
     private static SimpleCommandExceptionType IGNORED = new SimpleCommandExceptionType(new LiteralText("That player has ignored you."));
     private static DynamicCommandExceptionType COOLDOWN_ACTIVE = new DynamicCommandExceptionType(time -> new LiteralText("Cooldown active, can't send mail for " + time + " seconds."));
@@ -58,13 +57,8 @@ public final class SendCommand {
     private static int send(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
         ServerCommandSource src = ctx.getSource();
         ServerPlayerEntity sender = src.getPlayer();
-        Collection<GameProfile> profiles = GameProfileArgumentType.getProfileArgument(ctx, "player");
+        GameProfile recipient = CommandUtil.getOnePlayer(ctx, "player");
         Text message = MessageArgumentType.getMessage(ctx, "message");
-
-        if (profiles.size() > 1)
-            throw TOO_MANY_PLAYERS.create();
-
-        GameProfile recipient = profiles.iterator().next();
 
         if (recipient.getId().equals(sender.getUuid()))
             throw SELF_MESSAGE.create();

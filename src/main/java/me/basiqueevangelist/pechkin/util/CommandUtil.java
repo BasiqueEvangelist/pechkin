@@ -6,16 +6,19 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import me.basiqueevangelist.pechkin.data.PechkinPersistentState;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.GameProfileArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.LiteralText;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public final class CommandUtil {
-    private static SimpleCommandExceptionType TOO_MANY_PLAYERS = new SimpleCommandExceptionType(new LiteralText("Can't (un)ignore many players at once!"));
+    private static final SimpleCommandExceptionType TOO_MANY_PLAYERS = new SimpleCommandExceptionType(new LiteralText("Can't (un)ignore many players at once!"));
 
     private CommandUtil() {
 
@@ -31,14 +34,15 @@ public final class CommandUtil {
     }
 
     public static CompletableFuture<Suggestions> suggestPlayersExceptSelf(CommandContext<ServerCommandSource> ctx, SuggestionsBuilder builder) throws CommandSyntaxException {
-        var playerName = ctx.getSource().getPlayer().getEntityName();
+        var playerNames = new HashSet<>(List.of(ctx.getSource().getServer().getPlayerNames()));
+        var pechkinData = PechkinPersistentState.getFromServer(ctx.getSource().getServer());
 
-        return CommandSource.suggestMatching(
-            () -> ctx.getSource()
-                .getPlayerNames()
-                .stream()
-                .filter(x -> !x.equals(playerName))
-                .iterator(),
-            builder);
+        for (var id : pechkinData.getPlayerMap().keySet()) {
+            playerNames.add(NameUtil.getNameFromUUID(id));
+        }
+
+        playerNames.remove(ctx.getSource().getPlayer().getEntityName());
+
+        return CommandSource.suggestMatching(playerNames, builder);
     }
 }

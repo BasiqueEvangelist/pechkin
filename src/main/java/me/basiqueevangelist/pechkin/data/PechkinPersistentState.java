@@ -39,6 +39,10 @@ public class PechkinPersistentState extends PersistentState {
         return playerMap.computeIfAbsent(player, k -> new PechkinPlayerData());
     }
 
+    public Map<UUID, PechkinPlayerData> getPlayerMap() {
+        return playerMap;
+    }
+
     @Override
     public NbtCompound writeNbt(NbtCompound nbt) {
         var playersTag = new NbtList();
