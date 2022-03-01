@@ -84,7 +84,7 @@ public final class SendCommand {
         recipientData.addCorrespondent(sender.getUuid());
 
         MailMessage mail = new MailMessage(message, sender.getUuid(), UUID.randomUUID(), Instant.now());
-        recipientData.messages().add(mail);
+        recipientData.addMessage(mail);
         MailLogic.notifyMailSent(recipient.getId(), sender, mail);
 
         senderData.setLastMessageSent(Instant.now());

@@ -12,6 +12,7 @@ import java.util.UUID;
 
 public final class PechkinPlayerData {
     public static final int CORRESPONDENTS_QUEUE_LENGTH = 10;
+    public static final int MESSAGES_LENGTH = 100;
 
     private final List<MailMessage> messages;
     private final List<UUID> ignoredPlayers;
@@ -105,6 +106,12 @@ public final class PechkinPlayerData {
                 lastCorrespondents.add(0, id);
             }
         }
+    }
+
+    public void addMessage(MailMessage msg) {
+        if (messages.size() >= MESSAGES_LENGTH)
+            messages.remove(MESSAGES_LENGTH - 1);
+        messages.add(0, msg);
     }
 
     public List<MailMessage> messages() {
