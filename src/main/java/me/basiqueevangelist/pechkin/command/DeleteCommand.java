@@ -1,5 +1,6 @@
 package me.basiqueevangelist.pechkin.command;
 
+import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -7,6 +8,8 @@ import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import me.basiqueevangelist.pechkin.data.PechkinPersistentState;
 import me.basiqueevangelist.pechkin.data.PechkinPlayerData;
 import me.basiqueevangelist.pechkin.hack.StateTracker;
+import me.basiqueevangelist.pechkin.util.CommandUtil;
+import net.minecraft.command.argument.GameProfileArgumentType;
 import net.minecraft.command.argument.UuidArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -31,6 +34,10 @@ public final class DeleteCommand {
                 .then(literal("delete_list")
                     .then(argument("message", UuidArgumentType.uuid())
                         .executes(DeleteCommand::deleteList)))
+                .then(literal("delete_list_other")
+                    .then(argument("player", GameProfileArgumentType.gameProfile())
+                        .then(argument("message", UuidArgumentType.uuid())
+                            .executes(DeleteCommand::deleteListOther))))
                 .then(literal("delete_silent")
                     .then(argument("message", UuidArgumentType.uuid())
                         .executes(DeleteCommand::deleteSilent)))));
@@ -59,6 +66,22 @@ public final class DeleteCommand {
 
         // Resend the list, since this command will only be invoked via list anyway 🚎
         ListCommand.list(ctx);
+
+        return 1;
+    }
+
+    private static int deleteListOther(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
+        ServerCommandSource src = ctx.getSource();
+        UUID messageId = UuidArgumentType.getUuid(ctx, "message");
+        GameProfile player = CommandUtil.getOnePlayer(ctx, "player");
+        PechkinPlayerData data = PechkinPersistentState.getFromServer(src.getServer()).getDataFor(player.getId());
+
+        if (!data.messages().removeIf(x -> x.messageId().equals(messageId))) {
+            throw MESSAGE_DOESNT_EXIST.create();
+        }
+
+        // Resend the list, since this command will only be invoked via list anyway 🚎
+        ListCommand.listOther(ctx);
 
         return 1;
     }

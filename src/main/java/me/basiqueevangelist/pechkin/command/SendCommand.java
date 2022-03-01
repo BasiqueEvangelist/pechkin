@@ -11,6 +11,7 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import me.basiqueevangelist.pechkin.data.MailMessage;
 import me.basiqueevangelist.pechkin.data.PechkinPersistentState;
 import me.basiqueevangelist.pechkin.logic.MailLogic;
+import me.basiqueevangelist.pechkin.util.CommandUtil;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.GameProfileArgumentType;
@@ -43,27 +44,15 @@ public final class SendCommand {
         dispatcher.register(literal("mail")
             .then(literal("send")
                 .then(argument("player", GameProfileArgumentType.gameProfile())
-                    .suggests(SendCommand::sendSuggest)
+                    .suggests(CommandUtil::suggestPlayersExceptSelf)
                     .then(argument("message", MessageArgumentType.message())
                         .requires(Permissions.require("pechkin.send", true))
                         .executes(SendCommand::send))))
             .then(argument("player", GameProfileArgumentType.gameProfile())
-                .suggests(SendCommand::sendSuggest)
+                .suggests(CommandUtil::suggestPlayersExceptSelf)
                 .then(argument("message", MessageArgumentType.message())
                     .requires(Permissions.require("pechkin.send", true))
                     .executes(SendCommand::send))));
-    }
-
-    private static CompletableFuture<Suggestions> sendSuggest(CommandContext<ServerCommandSource> ctx, SuggestionsBuilder builder) throws CommandSyntaxException {
-        var playerName = ctx.getSource().getPlayer().getEntityName();
-
-        return CommandSource.suggestMatching(
-            () -> ctx.getSource()
-                .getPlayerNames()
-                .stream()
-                .filter(x -> !x.equals(playerName))
-                .iterator(),
-            builder);
     }
 
     private static int send(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {

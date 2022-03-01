@@ -8,6 +8,7 @@ import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import me.basiqueevangelist.pechkin.data.PechkinPersistentState;
+import me.basiqueevangelist.pechkin.util.CommandUtil;
 import me.basiqueevangelist.pechkin.util.NameUtil;
 import net.minecraft.command.argument.GameProfileArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
@@ -16,7 +17,6 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.text.MutableText;
 import net.minecraft.util.Formatting;
 
-import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -24,7 +24,6 @@ import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public final class IgnoreCommand {
-    private static SimpleCommandExceptionType TOO_MANY_PLAYERS = new SimpleCommandExceptionType(new LiteralText("Can't (un)ignore many players at once!"));
     private static SimpleCommandExceptionType SELF_IGNORE = new SimpleCommandExceptionType(new LiteralText("Can't (un)ignore yourself!"));
     private static SimpleCommandExceptionType ALREADY_IGNORED = new SimpleCommandExceptionType(new LiteralText("You are already ignoring that player."));
     private static SimpleCommandExceptionType NOT_IGNORED = new SimpleCommandExceptionType(new LiteralText("You aren't ignoring that player!"));
@@ -51,12 +50,7 @@ public final class IgnoreCommand {
     private static int ignoreAdd(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
         ServerCommandSource src = ctx.getSource();
         ServerPlayerEntity player = src.getPlayer();
-        Collection<GameProfile> profiles = GameProfileArgumentType.getProfileArgument(ctx, "player");
-
-        if (profiles.size() > 1)
-            throw TOO_MANY_PLAYERS.create();
-
-        GameProfile offender = profiles.iterator().next();
+        GameProfile offender = CommandUtil.getOnePlayer(ctx, "player");
 
         if (offender.getId().equals(player.getUuid()))
             throw SELF_IGNORE.create();
@@ -80,12 +74,7 @@ public final class IgnoreCommand {
     private static int ignoreRemove(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
         ServerCommandSource src = ctx.getSource();
         ServerPlayerEntity player = src.getPlayer();
-        Collection<GameProfile> profiles = GameProfileArgumentType.getProfileArgument(ctx, "player");
-
-        if (profiles.size() > 1)
-            throw TOO_MANY_PLAYERS.create();
-
-        GameProfile offender = profiles.iterator().next();
+        GameProfile offender = CommandUtil.getOnePlayer(ctx, "player");
 
         if (offender.getId().equals(player.getUuid()))
             throw SELF_IGNORE.create();
