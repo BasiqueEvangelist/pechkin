@@ -6,10 +6,13 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import me.basiqueevangelist.pechkin.data.MailMessage;
 import me.basiqueevangelist.pechkin.data.PechkinPersistentState;
 import me.basiqueevangelist.pechkin.logic.MailLogic;
 import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.GameProfileArgumentType;
 import net.minecraft.command.argument.MessageArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
@@ -21,6 +24,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -39,13 +43,27 @@ public final class SendCommand {
         dispatcher.register(literal("mail")
             .then(literal("send")
                 .then(argument("player", GameProfileArgumentType.gameProfile())
+                    .suggests(SendCommand::sendSuggest)
                     .then(argument("message", MessageArgumentType.message())
                         .requires(Permissions.require("pechkin.send", true))
                         .executes(SendCommand::send))))
             .then(argument("player", GameProfileArgumentType.gameProfile())
+                .suggests(SendCommand::sendSuggest)
                 .then(argument("message", MessageArgumentType.message())
                     .requires(Permissions.require("pechkin.send", true))
                     .executes(SendCommand::send))));
+    }
+
+    private static CompletableFuture<Suggestions> sendSuggest(CommandContext<ServerCommandSource> ctx, SuggestionsBuilder builder) throws CommandSyntaxException {
+        var playerName = ctx.getSource().getPlayer().getEntityName();
+
+        return CommandSource.suggestMatching(
+            () -> ctx.getSource()
+                .getPlayerNames()
+                .stream()
+                .filter(x -> !x.equals(playerName))
+                .iterator(),
+            builder);
     }
 
     private static int send(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
@@ -73,6 +91,8 @@ public final class SendCommand {
         if (cooldownTime < 60 && !Permissions.check(sender, "pechkin.bypasscooldown", 2)) {
             throw COOLDOWN_ACTIVE.create(60 - cooldownTime);
         }
+
+        recipientData.addCorrespondent(sender.getUuid());
 
         MailMessage mail = new MailMessage(message, sender.getUuid(), UUID.randomUUID(), Instant.now());
         recipientData.messages().add(mail);

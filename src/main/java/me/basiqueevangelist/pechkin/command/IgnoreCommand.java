@@ -5,6 +5,8 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import me.basiqueevangelist.pechkin.data.PechkinPersistentState;
 import me.basiqueevangelist.pechkin.util.NameUtil;
 import net.minecraft.command.argument.GameProfileArgumentType;
@@ -16,6 +18,7 @@ import net.minecraft.util.Formatting;
 
 import java.util.Collection;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -35,9 +38,11 @@ public final class IgnoreCommand {
             .then(literal("ignore")
                 .then(literal("add")
                     .then(argument("player", GameProfileArgumentType.gameProfile())
+                        .suggests(IgnoreCommand::ignoreAddSuggest)
                         .executes(IgnoreCommand::ignoreAdd)))
                 .then(literal("remove")
                     .then(argument("player", GameProfileArgumentType.gameProfile())
+                        .suggests(IgnoreCommand::ignoreRemoveSuggest)
                         .executes(IgnoreCommand::ignoreRemove)))
                 .then(literal("list")
                     .executes(IgnoreCommand::ignoreList))));
@@ -97,6 +102,32 @@ public final class IgnoreCommand {
             .append("."), false);
 
         return 1;
+    }
+
+    private static CompletableFuture<Suggestions> ignoreAddSuggest(CommandContext<ServerCommandSource> ctx, SuggestionsBuilder builder) throws CommandSyntaxException {
+        ServerCommandSource src = ctx.getSource();
+        ServerPlayerEntity player = src.getPlayer();
+        var state = PechkinPersistentState.getFromServer(src.getServer());
+        var playerData = state.getDataFor(player.getUuid());
+
+        for (var playerId : playerData.lastCorrespondents()) {
+            builder.suggest(NameUtil.getNameFromUUID(playerId));
+        }
+
+        return builder.buildFuture();
+    }
+
+    private static CompletableFuture<Suggestions> ignoreRemoveSuggest(CommandContext<ServerCommandSource> ctx, SuggestionsBuilder builder) throws CommandSyntaxException {
+        ServerCommandSource src = ctx.getSource();
+        ServerPlayerEntity player = src.getPlayer();
+        var state = PechkinPersistentState.getFromServer(src.getServer());
+        var playerData = state.getDataFor(player.getUuid());
+
+        for (var playerId : playerData.ignoredPlayers()) {
+            builder.suggest(NameUtil.getNameFromUUID(playerId));
+        }
+
+        return builder.buildFuture();
     }
 
     private static int ignoreList(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
