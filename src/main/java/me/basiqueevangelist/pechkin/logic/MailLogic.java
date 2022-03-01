@@ -5,6 +5,7 @@ import me.basiqueevangelist.pechkin.util.NameUtil;
 import net.minecraft.network.MessageType;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.ClickEvent;
+import net.minecraft.text.HoverEvent;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Formatting;
 
@@ -25,7 +26,9 @@ public final class MailLogic {
             .append(" [")
             .append(new LiteralText("✔")
                 .formatted(Formatting.GREEN)
-                .styled(x -> x.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mail internal delete_silent " + message.messageId()))))
+                .styled(x -> x
+                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new LiteralText("Acknowledge and delete message")))
+                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/mail internal delete_silent " + message.messageId()))))
             .append("]"), MessageType.CHAT, sender.getUuid());
     }
 

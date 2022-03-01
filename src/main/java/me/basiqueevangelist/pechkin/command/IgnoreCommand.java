@@ -97,7 +97,7 @@ public final class IgnoreCommand {
             throw NOT_IGNORED.create();
 
         src.sendFeedback(new LiteralText("Stopped ignoring messages from ")
-            .formatted(Formatting.DARK_RED)
+            .formatted(Formatting.YELLOW)
             .append(new LiteralText(NameUtil.getNameFromUUID(offender.getId())).formatted(Formatting.AQUA))
             .append("."), false);
 
