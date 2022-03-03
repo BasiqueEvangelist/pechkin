@@ -5,34 +5,21 @@ import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.nbt.NbtList;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public final class PechkinPlayerData {
+public record PechkinPlayerData(
+    List<MailMessage> messages,
+    List<UUID> ignoredPlayers,
+    List<UUID> lastCorrespondents,
+    LeakyBucket leakyBucket
+) {
     public static final int CORRESPONDENTS_QUEUE_LENGTH = 10;
     public static final int MESSAGES_LENGTH = 100;
 
-    private final List<MailMessage> messages;
-    private final List<UUID> ignoredPlayers;
-    private final List<UUID> lastCorrespondents;
-    private Instant lastMessageSent;
-
-    public PechkinPlayerData(
-        List<MailMessage> messages,
-        List<UUID> ignoredPlayers,
-        List<UUID> lastCorrespondents,
-        Instant lastMessageSent
-    ) {
-        this.messages = messages;
-        this.ignoredPlayers = ignoredPlayers;
-        this.lastCorrespondents = lastCorrespondents;
-        this.lastMessageSent = lastMessageSent;
-    }
-
     public PechkinPlayerData() {
-        this(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), Instant.EPOCH);
+        this(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new LeakyBucket());
     }
 
     public static PechkinPlayerData fromTag(NbtCompound tag) {
@@ -57,13 +44,13 @@ public final class PechkinPlayerData {
             lastCorrespondents.add(NbtHelper.toUuid(correspondentTag));
         }
 
-        Instant lastMessageSent = Instant.ofEpochMilli(tag.getLong("LastMessageSent"));
+        var leakyBucket = LeakyBucket.fromTag(tag);
 
-        return new PechkinPlayerData(messages, ignoredPlayers, lastCorrespondents, lastMessageSent);
+        return new PechkinPlayerData(messages, ignoredPlayers, lastCorrespondents, leakyBucket);
     }
 
     public boolean isEmpty() {
-        return messages.isEmpty() && ignoredPlayers.isEmpty();
+        return messages.isEmpty() && ignoredPlayers.isEmpty() && leakyBucket.isFull();
     }
 
     public NbtCompound toTag(NbtCompound tag) {
@@ -91,6 +78,8 @@ public final class PechkinPlayerData {
             }
         }
 
+        leakyBucket.toTag(tag);
+
         return tag;
     }
 
@@ -112,25 +101,5 @@ public final class PechkinPlayerData {
         if (messages.size() >= MESSAGES_LENGTH)
             messages.remove(MESSAGES_LENGTH - 1);
         messages.add(0, msg);
-    }
-
-    public List<MailMessage> messages() {
-        return messages;
-    }
-
-    public List<UUID> ignoredPlayers() {
-        return ignoredPlayers;
-    }
-
-    public List<UUID> lastCorrespondents() {
-        return lastCorrespondents;
-    }
-
-    public Instant getLastMessageSent() {
-        return lastMessageSent;
-    }
-
-    public void setLastMessageSent(Instant lastMessageSent) {
-        this.lastMessageSent = lastMessageSent;
     }
 }
