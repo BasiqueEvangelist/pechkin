@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public final class CommandUtil {
-    private static final SimpleCommandExceptionType TOO_MANY_PLAYERS = new SimpleCommandExceptionType(new LiteralText("Can't (un)ignore many players at once!"));
+    private static final SimpleCommandExceptionType TOO_MANY_PLAYERS = new SimpleCommandExceptionType(new LiteralText("Can't mention many players at once!"));
 
     private CommandUtil() {
 
