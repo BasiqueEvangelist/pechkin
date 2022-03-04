@@ -31,7 +31,7 @@ public final class ListCommand {
                 .executes(ListCommand::list)
                 .then(argument("player", GameProfileArgumentType.gameProfile())
                     .suggests(CommandUtil::suggestPlayersExceptSelf)
-                    .requires(Permissions.require("pechkin.list.other", 3))
+                    .requires(Permissions.require("pechkin.list.other", 2))
                     .executes(ListCommand::listOther))));
     }
 

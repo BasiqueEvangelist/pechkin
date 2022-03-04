@@ -1,5 +1,6 @@
 package me.basiqueevangelist.pechkin.data;
 
+import me.basiqueevangelist.pechkin.Pechkin;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtHelper;
@@ -15,9 +16,6 @@ public record PechkinPlayerData(
     List<UUID> lastCorrespondents,
     LeakyBucket leakyBucket
 ) {
-    public static final int CORRESPONDENTS_QUEUE_LENGTH = 10;
-    public static final int MESSAGES_LENGTH = 100;
-
     public PechkinPlayerData() {
         this(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new LeakyBucket());
     }
@@ -84,9 +82,11 @@ public record PechkinPlayerData(
     }
 
     public void addCorrespondent(UUID id) {
+        int maxCorrespondents = Pechkin.CONFIG.getConfig().maxCorrespondents;
+
         if (!lastCorrespondents.contains(id)) {
-            if (lastCorrespondents.size() >= CORRESPONDENTS_QUEUE_LENGTH)
-                lastCorrespondents.remove(CORRESPONDENTS_QUEUE_LENGTH - 1);
+            if (lastCorrespondents.size() >= maxCorrespondents)
+                lastCorrespondents.remove(maxCorrespondents - 1);
             lastCorrespondents.add(0, id);
         } else {
             int index = lastCorrespondents.indexOf(id);
@@ -98,8 +98,10 @@ public record PechkinPlayerData(
     }
 
     public void addMessage(MailMessage msg) {
-        if (messages.size() >= MESSAGES_LENGTH)
-            messages.remove(MESSAGES_LENGTH - 1);
+        int maxMessages = Pechkin.CONFIG.getConfig().maxInboxMessages;
+
+        if (messages.size() >= maxMessages)
+            messages.remove(maxMessages - 1);
         messages.add(0, msg);
     }
 }

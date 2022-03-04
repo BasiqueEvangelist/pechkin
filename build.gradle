@@ -1,4 +1,6 @@
 plugins {
+	id 'com.github.johnrengelman.shadow' version '7.1.2'
+	id 'java'
 	id 'fabric-loom' version '0.11-SNAPSHOT'
 	id 'io.github.juuxel.loom-quiltflower' version '1.6.0'
 	id 'maven-publish'
@@ -10,6 +12,10 @@ targetCompatibility = JavaVersion.VERSION_17
 archivesBaseName = project.archives_base_name
 version = project.mod_version
 group = project.maven_group
+
+configurations {
+	shade
+}
 
 repositories {
 	// Add repositories to retrieve artifacts from in here.
@@ -58,6 +64,8 @@ dependencies {
 
 	modImplementation include('me.lucko:fabric-permissions-api:0.1-SNAPSHOT')
 
+	shade implementation("blue.endless:jankson:1.2.0")
+
 	modLocalRuntime "maven.modrinth:lazydfu:0.1.2"
 }
 
@@ -78,6 +86,22 @@ tasks.withType(JavaCompile).configureEach {
 
 	// Minecraft 1.17 (21w19a) upwards uses Java 16.
 	it.options.release = 17
+}
+
+remapJar {
+	dependsOn "shadowJar"
+
+	inputFile.set shadowJar.archiveFile.get()
+}
+
+prepareRemapJar {
+	dependsOn "shadowJar"
+}
+
+shadowJar {
+	configurations = [project.configurations.shade]
+
+	relocate "blue.endless.jankson", "me.basiqueevangelist.pechkin.shadowed.blue.endless.jankson"
 }
 
 java {

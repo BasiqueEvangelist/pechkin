@@ -9,6 +9,7 @@ import net.minecraft.server.MinecraftServer;
 import java.lang.ref.WeakReference;
 
 public class Pechkin implements ModInitializer {
+    public static final ConfigManager CONFIG = new ConfigManager();
     public static WeakReference<MinecraftServer> server;
 
     @Override
@@ -23,6 +24,7 @@ public class Pechkin implements ModInitializer {
             DeleteCommand.register(dispatcher);
             IgnoreCommand.register(dispatcher);
             ClearCommand.register(dispatcher);
+            ReloadCommand.register(dispatcher);
         });
     }
 }

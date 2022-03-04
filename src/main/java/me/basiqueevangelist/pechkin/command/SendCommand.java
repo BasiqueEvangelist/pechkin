@@ -5,6 +5,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+import me.basiqueevangelist.pechkin.Pechkin;
 import me.basiqueevangelist.pechkin.data.MailMessage;
 import me.basiqueevangelist.pechkin.data.PechkinPersistentState;
 import me.basiqueevangelist.pechkin.logic.MailLogic;
@@ -24,8 +25,6 @@ import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public final class SendCommand {
-    public static final int SEND_COST = 30;
-
     private static final SimpleCommandExceptionType SELF_MESSAGE = new SimpleCommandExceptionType(new LiteralText("Can't send mail to yourself!"));
     private static final SimpleCommandExceptionType IGNORED = new SimpleCommandExceptionType(new LiteralText("That player has ignored you."));
     private static final SimpleCommandExceptionType RATELIMIT = new SimpleCommandExceptionType(new LiteralText("You are being rate limited."));
@@ -66,10 +65,12 @@ public final class SendCommand {
             throw IGNORED.create();
 
         if (!Permissions.check(sender, "pechkin.bypass.cooldown", 2)) {
-            if (!senderData.leakyBucket().hasEnoughFor(SEND_COST))
+            int sendCost = Pechkin.CONFIG.getConfig().sendCost;
+
+            if (!senderData.leakyBucket().hasEnoughFor(sendCost))
                 throw RATELIMIT.create();
 
-            senderData.leakyBucket().addTime(SEND_COST);
+            senderData.leakyBucket().addTime(sendCost);
         }
 
         recipientData.addCorrespondent(sender.getUuid());

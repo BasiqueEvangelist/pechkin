@@ -28,7 +28,7 @@ public final class ClearCommand {
             .then(literal("clear")
                 .executes(ClearCommand::clear)
                 .then(argument("player", GameProfileArgumentType.gameProfile())
-                    .requires(Permissions.require("pechkin.clear.other", 3))
+                    .requires(Permissions.require("pechkin.clear.other", 2))
                     .suggests(CommandUtil::suggestPlayersExceptSelf)
                     .executes(ClearCommand::clearOther))));
     }
