@@ -6,12 +6,14 @@
   "name": "Pechkin",
   "description": "Server-side mail for Fabric",
   "authors": [
-    "BasiqueEvangelist"
+    "BasiqueEvangelist",
+    "Jetsparrow"
   ],
   "contact": {
     "sources": "https://github.com/BasiqueEvangelist/pechkin",
     "issues": "https://github.com/BasiqueEvangelist/pechkin/issues"
   },
+  "icon": "assets/pechkin/icon.png",
 
   "license": "LGPL-3.0-only",
 

@@ -72,6 +72,7 @@ dependencies {
 	shade implementation("blue.endless:jankson:1.2.0")
 
 	modLocalRuntime "maven.modrinth:lazydfu:0.1.2"
+	modLocalRuntime "maven.modrinth:modmenu:3.1.0"
 }
 
 processResources {
