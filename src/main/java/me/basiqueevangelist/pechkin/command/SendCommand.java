@@ -5,9 +5,10 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+import me.basiqueevangelist.onedatastore.api.DataStore;
 import me.basiqueevangelist.pechkin.Pechkin;
 import me.basiqueevangelist.pechkin.data.MailMessage;
-import me.basiqueevangelist.pechkin.data.PechkinPersistentState;
+import me.basiqueevangelist.pechkin.data.PechkinPlayerData;
 import me.basiqueevangelist.pechkin.logic.MailLogic;
 import me.basiqueevangelist.pechkin.util.CommandUtil;
 import me.lucko.fabric.api.permissions.v0.Permissions;
@@ -57,9 +58,8 @@ public final class SendCommand {
         if (recipient.getId().equals(sender.getUuid()))
             throw SELF_MESSAGE.create();
 
-        var state = PechkinPersistentState.getFromServer(src.getServer());
-        var senderData = state.getDataFor(sender.getUuid());
-        var recipientData = state.getDataFor(recipient.getId());
+        PechkinPlayerData senderData = DataStore.getFor(src.getServer()).getPlayer(sender.getUuid(), Pechkin.PLAYER_DATA);
+        PechkinPlayerData recipientData = DataStore.getFor(src.getServer()).getPlayer(recipient.getId(), Pechkin.PLAYER_DATA);
 
         if (recipientData.ignoredPlayers().contains(sender.getUuid()))
             throw IGNORED.create();

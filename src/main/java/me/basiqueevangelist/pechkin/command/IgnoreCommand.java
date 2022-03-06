@@ -7,7 +7,9 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import me.basiqueevangelist.pechkin.data.PechkinPersistentState;
+import me.basiqueevangelist.onedatastore.api.DataStore;
+import me.basiqueevangelist.pechkin.Pechkin;
+import me.basiqueevangelist.pechkin.data.PechkinPlayerData;
 import me.basiqueevangelist.pechkin.util.CommandUtil;
 import me.basiqueevangelist.pechkin.util.NameUtil;
 import net.minecraft.command.argument.GameProfileArgumentType;
@@ -55,13 +57,12 @@ public final class IgnoreCommand {
         if (offender.getId().equals(player.getUuid()))
             throw SELF_IGNORE.create();
 
-        var state = PechkinPersistentState.getFromServer(src.getServer());
-        var playerData = state.getDataFor(player.getUuid());
+        PechkinPlayerData data = DataStore.getFor(src.getServer()).getPlayer(player.getUuid(), Pechkin.PLAYER_DATA);
 
-        if (playerData.ignoredPlayers().contains(offender.getId()))
+        if (data.ignoredPlayers().contains(offender.getId()))
             throw ALREADY_IGNORED.create();
 
-        playerData.ignoredPlayers().add(offender.getId());
+        data.ignoredPlayers().add(offender.getId());
 
         src.sendFeedback(new LiteralText("Ignoring any further messages from ")
             .formatted(Formatting.GREEN)
@@ -79,10 +80,9 @@ public final class IgnoreCommand {
         if (offender.getId().equals(player.getUuid()))
             throw SELF_IGNORE.create();
 
-        var state = PechkinPersistentState.getFromServer(src.getServer());
-        var playerData = state.getDataFor(player.getUuid());
+        PechkinPlayerData data = DataStore.getFor(src.getServer()).getPlayer(player.getUuid(), Pechkin.PLAYER_DATA);
 
-        if (!playerData.ignoredPlayers().remove(offender.getId()))
+        if (!data.ignoredPlayers().remove(offender.getId()))
             throw NOT_IGNORED.create();
 
         src.sendFeedback(new LiteralText("Stopped ignoring messages from ")
@@ -96,10 +96,9 @@ public final class IgnoreCommand {
     private static CompletableFuture<Suggestions> ignoreAddSuggest(CommandContext<ServerCommandSource> ctx, SuggestionsBuilder builder) throws CommandSyntaxException {
         ServerCommandSource src = ctx.getSource();
         ServerPlayerEntity player = src.getPlayer();
-        var state = PechkinPersistentState.getFromServer(src.getServer());
-        var playerData = state.getDataFor(player.getUuid());
+        PechkinPlayerData data = DataStore.getFor(src.getServer()).getPlayer(player.getUuid(), Pechkin.PLAYER_DATA);
 
-        for (var playerId : playerData.lastCorrespondents()) {
+        for (var playerId : data.lastCorrespondents()) {
             builder.suggest(NameUtil.getNameFromUUID(playerId));
         }
 
@@ -109,10 +108,9 @@ public final class IgnoreCommand {
     private static CompletableFuture<Suggestions> ignoreRemoveSuggest(CommandContext<ServerCommandSource> ctx, SuggestionsBuilder builder) throws CommandSyntaxException {
         ServerCommandSource src = ctx.getSource();
         ServerPlayerEntity player = src.getPlayer();
-        var state = PechkinPersistentState.getFromServer(src.getServer());
-        var playerData = state.getDataFor(player.getUuid());
+        PechkinPlayerData data = DataStore.getFor(src.getServer()).getPlayer(player.getUuid(), Pechkin.PLAYER_DATA);
 
-        for (var playerId : playerData.ignoredPlayers()) {
+        for (var playerId : data.ignoredPlayers()) {
             builder.suggest(NameUtil.getNameFromUUID(playerId));
         }
 
@@ -123,13 +121,12 @@ public final class IgnoreCommand {
         ServerCommandSource src = ctx.getSource();
         ServerPlayerEntity player = src.getPlayer();
 
-        var state = PechkinPersistentState.getFromServer(src.getServer());
-        var playerData = state.getDataFor(player.getUuid());
+        PechkinPlayerData data = DataStore.getFor(src.getServer()).getPlayer(player.getUuid(), Pechkin.PLAYER_DATA);
 
         MutableText playersBuilder = new LiteralText("");
         boolean isFirst = true;
 
-        for (UUID ignoredPlayer : playerData.ignoredPlayers()) {
+        for (UUID ignoredPlayer : data.ignoredPlayers()) {
             if (!isFirst)
                 playersBuilder.append(", ");
             isFirst = false;

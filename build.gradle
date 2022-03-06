@@ -31,6 +31,10 @@ repositories {
 			includeGroup "maven.modrinth"
 		}
 	}
+	maven {
+		name = "Basique's Maven"
+		url = 'https://porez.ml/maven'
+	}
 }
 
 loom {
@@ -63,6 +67,7 @@ dependencies {
 	// You may need to force-disable transitiveness on them.
 
 	modImplementation include('me.lucko:fabric-permissions-api:0.1-SNAPSHOT')
+	modImplementation include('me.basiqueevangelist:onedatastore:0.1.0')
 
 	shade implementation("blue.endless:jankson:1.2.0")
 
@@ -121,13 +126,7 @@ jar {
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
-			// add all the jars that should be included when publishing to maven
-			artifact(remapJar) {
-				builtBy remapJar
-			}
-			artifact(sourcesJar) {
-				builtBy remapSourcesJar
-			}
+			from components.java
 		}
 	}
 

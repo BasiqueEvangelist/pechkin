@@ -1,5 +1,7 @@
 package me.basiqueevangelist.pechkin.data;
 
+import me.basiqueevangelist.onedatastore.api.ComponentInstance;
+import me.basiqueevangelist.onedatastore.api.PlayerDataEntry;
 import me.basiqueevangelist.pechkin.Pechkin;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
@@ -15,36 +17,31 @@ public record PechkinPlayerData(
     List<UUID> ignoredPlayers,
     List<UUID> lastCorrespondents,
     LeakyBucket leakyBucket
-) {
-    public PechkinPlayerData() {
+) implements ComponentInstance {
+    public PechkinPlayerData(PlayerDataEntry entry) {
         this(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new LeakyBucket());
     }
 
-    public static PechkinPlayerData fromTag(NbtCompound tag) {
+    public void fromTag(NbtCompound tag) {
         var messagesTag = tag.getList("Messages", NbtElement.COMPOUND_TYPE);
-        var messages = new ArrayList<MailMessage>();
 
         for (int i = 0; i < messagesTag.size(); i++) {
             messages.add(MailMessage.fromTag(messagesTag.getCompound(i)));
         }
 
         var ignoredPlayersTag = tag.getList("IgnoredPlayers", NbtElement.INT_ARRAY_TYPE);
-        var ignoredPlayers = new ArrayList<UUID>();
 
         for (var ignoredPlayerTag : ignoredPlayersTag) {
             ignoredPlayers.add(NbtHelper.toUuid(ignoredPlayerTag));
         }
 
         var lastCorrespondentsTag = tag.getList("LastCorrespondents", NbtElement.INT_ARRAY_TYPE);
-        var lastCorrespondents = new ArrayList<UUID>();
 
         for (var correspondentTag : lastCorrespondentsTag) {
             lastCorrespondents.add(NbtHelper.toUuid(correspondentTag));
         }
 
-        var leakyBucket = LeakyBucket.fromTag(tag);
-
-        return new PechkinPlayerData(messages, ignoredPlayers, lastCorrespondents, leakyBucket);
+        leakyBucket.fromTag(tag);
     }
 
     public boolean isEmpty() {

@@ -6,7 +6,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import me.basiqueevangelist.pechkin.data.PechkinPersistentState;
+import me.basiqueevangelist.onedatastore.api.DataStore;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.GameProfileArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
@@ -35,10 +35,9 @@ public final class CommandUtil {
 
     public static CompletableFuture<Suggestions> suggestPlayersExceptSelf(CommandContext<ServerCommandSource> ctx, SuggestionsBuilder builder) throws CommandSyntaxException {
         var playerNames = new HashSet<>(List.of(ctx.getSource().getServer().getPlayerNames()));
-        var pechkinData = PechkinPersistentState.getFromServer(ctx.getSource().getServer());
 
-        for (var id : pechkinData.getPlayerMap().keySet()) {
-            playerNames.add(NameUtil.getNameFromUUID(id));
+        for (var entry : DataStore.getFor(ctx.getSource().getServer()).players()) {
+            playerNames.add(NameUtil.getNameFromUUID(entry.playerId()));
         }
 
         playerNames.remove(ctx.getSource().getPlayer().getEntityName());

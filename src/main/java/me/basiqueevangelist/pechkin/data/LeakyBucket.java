@@ -2,6 +2,7 @@ package me.basiqueevangelist.pechkin.data;
 
 import me.basiqueevangelist.pechkin.Pechkin;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -34,11 +35,15 @@ public final class LeakyBucket {
         return debtExpiryTime.isBefore(Instant.now());
     }
 
-    public static LeakyBucket fromTag(NbtCompound tag) {
-        return new LeakyBucket(Instant.ofEpochMilli(tag.getLong("LeakyBucketFillTime")));
+    public void fromTag(NbtCompound tag) {
+        if (tag.contains("LeakyBucketFillTime", NbtElement.LONG_TYPE)) {
+            debtExpiryTime = Instant.ofEpochMilli(tag.getLong("LeakyBucketFillTime"));
+        }
     }
 
     public void toTag(NbtCompound tag) {
-        tag.putLong("LeakyBucketFillTime", debtExpiryTime.toEpochMilli());
+        if (debtExpiryTime.isAfter(Instant.now())) {
+            tag.putLong("LeakyBucketFillTime", debtExpiryTime.toEpochMilli());
+        }
     }
 }

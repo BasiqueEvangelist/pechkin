@@ -5,7 +5,8 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
-import me.basiqueevangelist.pechkin.data.PechkinPersistentState;
+import me.basiqueevangelist.onedatastore.api.DataStore;
+import me.basiqueevangelist.pechkin.Pechkin;
 import me.basiqueevangelist.pechkin.data.PechkinPlayerData;
 import me.basiqueevangelist.pechkin.hack.StateTracker;
 import me.basiqueevangelist.pechkin.util.CommandUtil;
@@ -47,7 +48,7 @@ public final class DeleteCommand {
         ServerCommandSource src = ctx.getSource();
         ServerPlayerEntity player = src.getPlayer();
         UUID messageId = UuidArgumentType.getUuid(ctx, "message");
-        PechkinPlayerData data = PechkinPersistentState.getFromServer(src.getServer()).getDataFor(player.getUuid());
+        PechkinPlayerData data = DataStore.getFor(src.getServer()).getPlayer(player.getUuid(), Pechkin.PLAYER_DATA);
 
         data.messages().removeIf(x -> x.messageId().equals(messageId));
 
@@ -58,7 +59,7 @@ public final class DeleteCommand {
         ServerCommandSource src = ctx.getSource();
         ServerPlayerEntity player = src.getPlayer();
         UUID messageId = UuidArgumentType.getUuid(ctx, "message");
-        PechkinPlayerData data = PechkinPersistentState.getFromServer(src.getServer()).getDataFor(player.getUuid());
+        PechkinPlayerData data = DataStore.getFor(src.getServer()).getPlayer(player.getUuid(), Pechkin.PLAYER_DATA);
 
         if (!data.messages().removeIf(x -> x.messageId().equals(messageId))) {
             throw MESSAGE_DOESNT_EXIST.create();
@@ -74,7 +75,7 @@ public final class DeleteCommand {
         ServerCommandSource src = ctx.getSource();
         UUID messageId = UuidArgumentType.getUuid(ctx, "message");
         GameProfile player = CommandUtil.getOnePlayer(ctx, "player");
-        PechkinPlayerData data = PechkinPersistentState.getFromServer(src.getServer()).getDataFor(player.getId());
+        PechkinPlayerData data = DataStore.getFor(src.getServer()).getPlayer(player.getId(), Pechkin.PLAYER_DATA);
 
         if (!data.messages().removeIf(x -> x.messageId().equals(messageId))) {
             throw MESSAGE_DOESNT_EXIST.create();

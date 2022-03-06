@@ -4,7 +4,8 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import me.basiqueevangelist.pechkin.data.PechkinPersistentState;
+import me.basiqueevangelist.onedatastore.api.DataStore;
+import me.basiqueevangelist.pechkin.Pechkin;
 import me.basiqueevangelist.pechkin.data.PechkinPlayerData;
 import me.basiqueevangelist.pechkin.util.CommandUtil;
 import me.basiqueevangelist.pechkin.util.NameUtil;
@@ -36,7 +37,7 @@ public final class ClearCommand {
     private static int clear(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
         ServerCommandSource src = ctx.getSource();
         ServerPlayerEntity player = src.getPlayer();
-        PechkinPlayerData data = PechkinPersistentState.getFromServer(src.getServer()).getDataFor(player.getUuid());
+        PechkinPlayerData data = DataStore.getFor(src.getServer()).getPlayer(player.getUuid(), Pechkin.PLAYER_DATA);
 
         Text sent = new LiteralText("Deleted " + data.messages().size() + " message" + (data.messages().size() == 1 ? "" : "s") + " from your inbox.")
             .formatted(Formatting.GREEN);
@@ -51,7 +52,7 @@ public final class ClearCommand {
     private static int clearOther(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
         ServerCommandSource src = ctx.getSource();
         GameProfile player = CommandUtil.getOnePlayer(ctx, "player");
-        PechkinPlayerData data = PechkinPersistentState.getFromServer(src.getServer()).getDataFor(player.getId());
+        PechkinPlayerData data = DataStore.getFor(src.getServer()).getPlayer(player.getId(), Pechkin.PLAYER_DATA);
 
         Text sent = new LiteralText("Deleted " + data.messages().size() + " message" + (data.messages().size() == 1 ? "" : "s") + " from ")
             .append(new LiteralText(NameUtil.getNameFromUUID(player.getId())).formatted(Formatting.AQUA))

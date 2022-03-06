@@ -4,8 +4,9 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import me.basiqueevangelist.onedatastore.api.DataStore;
+import me.basiqueevangelist.pechkin.Pechkin;
 import me.basiqueevangelist.pechkin.data.MailMessage;
-import me.basiqueevangelist.pechkin.data.PechkinPersistentState;
 import me.basiqueevangelist.pechkin.data.PechkinPlayerData;
 import me.basiqueevangelist.pechkin.util.CommandUtil;
 import me.basiqueevangelist.pechkin.util.NameUtil;
@@ -38,8 +39,8 @@ public final class ListCommand {
     public static int listOther(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
         ServerCommandSource src = ctx.getSource();
         GameProfile player = CommandUtil.getOnePlayer(ctx, "player");
-        PechkinPlayerData data = PechkinPersistentState.getFromServer(src.getServer()).getDataFor(player.getId());
-        Text playerName = new LiteralText(NameUtil.getNameFromUUID(player.getId()))
+        PechkinPlayerData data = DataStore.getFor(src.getServer()).getPlayer(player.getId(), Pechkin.PLAYER_DATA);
+        Text playerName = new LiteralText(player.getName())
             .formatted(Formatting.AQUA);
 
         MutableText complete = new LiteralText("")
@@ -47,7 +48,7 @@ public final class ListCommand {
             .append(" has " + data.messages().size() + " message" + (data.messages().size() != 1 ? "s" : "") + " stored:");
 
         for (var message : data.messages()) {
-            complete.append(writeMessageDesc(message, playerName, "/mail internal delete_list_other " + NameUtil.getNameFromUUID(player.getId()) + " "));
+            complete.append(writeMessageDesc(message, playerName, "/mail internal delete_list_other " + player.getName() + " "));
         }
 
         src.sendFeedback(complete, false);
@@ -58,7 +59,7 @@ public final class ListCommand {
     public static int list(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
         ServerCommandSource src = ctx.getSource();
         ServerPlayerEntity player = src.getPlayer();
-        PechkinPlayerData data = PechkinPersistentState.getFromServer(src.getServer()).getDataFor(player.getUuid());
+        PechkinPlayerData data = DataStore.getFor(src.getServer()).getPlayer(player.getUuid(), Pechkin.PLAYER_DATA);
 
         MutableText complete = new LiteralText("You have " + data.messages().size() + " message" + (data.messages().size() != 1 ? "s" : "") + " stored:");
 
