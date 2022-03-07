@@ -101,9 +101,6 @@ public final class SendCommand {
 
         if (sender.getUuid().equals(recipientId)) return;
 
-        ServerPlayerEntity onlineRecipient = src.getServer().getPlayerManager().getPlayer(recipientId);
-        if (onlineRecipient != null) {
-            MailLogic.notifyMailReceived(onlineRecipient, sender, mail);
-        }
+        MailLogic.notifyMailReceived(src.getServer(), recipientId, sender, mail);
     }
 }

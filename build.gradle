@@ -71,6 +71,9 @@ dependencies {
 
 	shade implementation("blue.endless:jankson:1.2.0")
 
+	modCompileOnly "me.basiqueevangelist:pingspam:${pingspam_version}"
+	modLocalRuntime "me.basiqueevangelist:pingspam:${pingspam_version}"
+
 	modLocalRuntime "maven.modrinth:lazydfu:0.1.2"
 	modLocalRuntime "maven.modrinth:modmenu:3.1.0"
 }
