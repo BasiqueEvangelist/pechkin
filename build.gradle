@@ -67,7 +67,7 @@ dependencies {
 	// You may need to force-disable transitiveness on them.
 
 	modImplementation include('me.lucko:fabric-permissions-api:0.1-SNAPSHOT')
-	modImplementation include('me.basiqueevangelist:onedatastore:0.1.0')
+	modImplementation include('me.basiqueevangelist:onedatastore:0.1.1')
 
 	shade implementation("blue.endless:jankson:1.2.0")
 

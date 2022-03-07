@@ -44,4 +44,14 @@ public final class CommandUtil {
 
         return CommandSource.suggestMatching(playerNames, builder);
     }
+
+    public static CompletableFuture<Suggestions> suggestPlayers(CommandContext<ServerCommandSource> ctx, SuggestionsBuilder builder) {
+        var playerNames = new HashSet<>(List.of(ctx.getSource().getServer().getPlayerNames()));
+
+        for (var entry : DataStore.getFor(ctx.getSource().getServer()).players()) {
+            playerNames.add(NameUtil.getNameFromUUID(entry.playerId()));
+        }
+
+        return CommandSource.suggestMatching(playerNames, builder);
+    }
 }

@@ -33,7 +33,8 @@ public final class ListCommand {
                 .then(argument("player", GameProfileArgumentType.gameProfile())
                     .suggests(CommandUtil::suggestPlayersExceptSelf)
                     .requires(Permissions.require("pechkin.list.other", 2))
-                    .executes(ListCommand::listOther))));
+                    .executes(ListCommand::listOther)))
+            .executes(ListCommand::list));
     }
 
     public static int listOther(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {

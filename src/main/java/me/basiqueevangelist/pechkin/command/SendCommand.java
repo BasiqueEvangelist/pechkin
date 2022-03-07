@@ -26,9 +26,9 @@ import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public final class SendCommand {
-    private static final SimpleCommandExceptionType SELF_MESSAGE = new SimpleCommandExceptionType(new LiteralText("Can't send mail to yourself!"));
     private static final SimpleCommandExceptionType IGNORED = new SimpleCommandExceptionType(new LiteralText("That player has ignored you."));
     private static final SimpleCommandExceptionType RATELIMIT = new SimpleCommandExceptionType(new LiteralText("You are being rate limited."));
+    private static final SimpleCommandExceptionType NO_CORRESPONDENT = new SimpleCommandExceptionType(new LiteralText("No correspondents recorded yet"));
 
     private SendCommand() {
 
@@ -38,15 +38,15 @@ public final class SendCommand {
         dispatcher.register(literal("mail")
             .then(literal("send")
                 .then(argument("player", GameProfileArgumentType.gameProfile())
-                    .suggests(CommandUtil::suggestPlayersExceptSelf)
+                    .suggests(CommandUtil::suggestPlayers)
                     .then(argument("message", MessageArgumentType.message())
                         .requires(Permissions.require("pechkin.send", true))
-                        .executes(SendCommand::send))))
-            .then(argument("player", GameProfileArgumentType.gameProfile())
-                .suggests(CommandUtil::suggestPlayersExceptSelf)
-                .then(argument("message", MessageArgumentType.message())
-                    .requires(Permissions.require("pechkin.send", true))
-                    .executes(SendCommand::send))));
+                        .executes(SendCommand::send)))));
+
+        dispatcher.register(literal("r")
+            .then(argument("message", MessageArgumentType.message())
+                .requires(Permissions.require("pechkin.send", true))
+                .executes(SendCommand::reply)));
     }
 
     private static int send(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
@@ -55,11 +55,30 @@ public final class SendCommand {
         GameProfile recipient = CommandUtil.getOnePlayer(ctx, "player");
         Text message = MessageArgumentType.getMessage(ctx, "message");
 
-        if (recipient.getId().equals(sender.getUuid()))
-            throw SELF_MESSAGE.create();
+        sendMessage(src, sender, recipient.getId(), message);
 
+        return 1;
+    }
+
+    private static int reply(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
+        ServerCommandSource src = ctx.getSource();
+        ServerPlayerEntity sender = src.getPlayer();
         PechkinPlayerData senderData = DataStore.getFor(src.getServer()).getPlayer(sender.getUuid(), Pechkin.PLAYER_DATA);
-        PechkinPlayerData recipientData = DataStore.getFor(src.getServer()).getPlayer(recipient.getId(), Pechkin.PLAYER_DATA);
+        Text message = MessageArgumentType.getMessage(ctx, "message");
+
+        if (senderData.lastCorrespondents().size() <= 0)
+            throw NO_CORRESPONDENT.create();
+
+        UUID recipientId = senderData.lastCorrespondents().get(0);
+
+        sendMessage(src, sender, recipientId, message);
+
+        return 1;
+    }
+
+    private static void sendMessage(ServerCommandSource src, ServerPlayerEntity sender, UUID recipientId, Text message) throws CommandSyntaxException {
+        PechkinPlayerData senderData = DataStore.getFor(src.getServer()).getPlayer(sender.getUuid(), Pechkin.PLAYER_DATA);
+        PechkinPlayerData recipientData = DataStore.getFor(src.getServer()).getPlayer(recipientId, Pechkin.PLAYER_DATA);
 
         if (recipientData.ignoredPlayers().contains(sender.getUuid()))
             throw IGNORED.create();
@@ -73,17 +92,18 @@ public final class SendCommand {
             senderData.leakyBucket().addTime(sendCost);
         }
 
-        recipientData.addCorrespondent(sender.getUuid());
+        if (!recipientId.equals(sender.getUuid()))
+            recipientData.addCorrespondent(sender.getUuid());
 
         MailMessage mail = new MailMessage(message, sender.getUuid(), UUID.randomUUID(), Instant.now());
         recipientData.addMessage(mail);
-        MailLogic.notifyMailSent(recipient.getId(), sender, mail);
+        MailLogic.notifyMailSent(recipientId, sender, mail);
 
-        ServerPlayerEntity onlineRecipient = src.getServer().getPlayerManager().getPlayer(recipient.getId());
+        if (sender.getUuid().equals(recipientId)) return;
+
+        ServerPlayerEntity onlineRecipient = src.getServer().getPlayerManager().getPlayer(recipientId);
         if (onlineRecipient != null) {
             MailLogic.notifyMailReceived(onlineRecipient, sender, mail);
         }
-
-        return 1;
     }
 }
