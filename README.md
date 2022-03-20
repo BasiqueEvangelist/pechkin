@@ -17,3 +17,6 @@ You can also use the buttons that appear next to the messages in chat: the red c
 ## Ignore
 You can ignore mail from particularly annoying players using `/mail ignore add <offender>`
 You can use `/mail ignore list` to review your ignore list and `/mail ignore remove <offender>` to stop ignoring them.
+
+## Server owners and operators
+Read more in the [README-SERVER.md](README-SERVER.md)
