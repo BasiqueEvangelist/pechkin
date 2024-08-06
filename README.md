@@ -1,3 +1,5 @@
+# Folded into Pingspam.
+
 # Pechkin
 [![Modrinth Badge](https://shields.io/modrinth/dt/pechkin)](https://modrinth.com/mod/pechkin)
 
